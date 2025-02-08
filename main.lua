@@ -1,6 +1,6 @@
 local AreoVolt = {}
 
--- Function to check and remove an existing AreoVolt GUI
+-- Auto-Cleanup Function
 function AreoVolt.DestroyExisting()
     local existing = game.CoreGui:FindFirstChild("AreoVoltHUB") 
         or (game:GetService("Players").LocalPlayer 
@@ -12,6 +12,11 @@ function AreoVolt.DestroyExisting()
     end
 end
 
+-- Stores Created Labels for Dynamic Updates
+AreoVolt.Labels = {}
+AreoVolt.Buttons = {}
+
+-- Function to Create Main Window
 function AreoVolt.CreateWindow(settings)
     AreoVolt.DestroyExisting()
 
@@ -26,12 +31,17 @@ function AreoVolt.CreateWindow(settings)
     local container = Instance.new("Frame") 
     local layout = Instance.new("UIListLayout") 
 
+    -- Set Parent Correctly
     local player = game:GetService("Players").LocalPlayer
     if not player then return end
     AreoVoltHUB.Name = "AreoVoltHUB"
     AreoVoltHUB.Parent = player:WaitForChild("PlayerGui")
 
-    -- Main Window (Preserves Your Position & Design)
+    -- GUI Properties
+    AreoVoltHUB.ResetOnSpawn = false
+    AreoVoltHUB.IgnoreGuiInset = true
+
+    -- Main Window
     MainWindow.Parent = AreoVoltHUB
     MainWindow.BackgroundColor3 = Color3.new(0, 0, 0)
     MainWindow.BorderSizePixel = 0
@@ -73,7 +83,7 @@ function AreoVolt.CreateWindow(settings)
         AreoVoltHUB:Destroy()
     end)
 
-    -- Container for UI elements (Prevents Overlapping)
+    -- Container for UI Elements
     container.Parent = MainWindow
     container.Size = UDim2.new(1, 0, 1, -30)
     container.Position = UDim2.new(0, 0, 0, 30)
@@ -86,28 +96,32 @@ function AreoVolt.CreateWindow(settings)
     return MainWindow, container
 end
 
--- Function to Create Buttons (Preserves Your Design)
+-- Function to Create Buttons
 function AreoVolt.CreateButton(parent, settings)
     local button = Instance.new("TextButton")
+    button.Name = settings.Name or "Button"
     button.Parent = parent
     button.Size = UDim2.new(0.9, 0, 0, 40)
     button.Position = UDim2.new(0.05, 0, 0, 0)
     button.Text = settings.Text or "Button"
     button.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    button.BackgroundTransparency = 0.3
     button.Font = Enum.Font.SciFi
     button.TextScaled = true
-    button.TextColor3 = Color3.new(1, 1, 1)
+    button.TextColor3 = Color3.new(0, 0.6, 1)
 
     if settings.Callback then
         button.MouseButton1Click:Connect(settings.Callback)
     end
 
+    AreoVolt.Buttons[button.Name] = button
     return button
 end
 
--- Function to Create Labels (Preserves Your Design)
+-- Function to Create Labels
 function AreoVolt.CreateLabel(parent, settings)
     local label = Instance.new("TextLabel")
+    label.Name = settings.Name or "Label"
     label.Parent = parent
     label.Size = UDim2.new(0.9, 0, 0, 30)
     label.Position = UDim2.new(0.05, 0, 0, 0)
@@ -115,9 +129,24 @@ function AreoVolt.CreateLabel(parent, settings)
     label.BackgroundTransparency = 1
     label.Font = Enum.Font.SciFi
     label.TextScaled = true
-    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextColor3 = Color3.new(0, 0.6, 1)
 
+    AreoVolt.Labels[label.Name] = label
     return label
+end
+
+-- Function to Update Label Text
+function AreoVolt.UpdateTextLabel(name, newText)
+    if AreoVolt.Labels[name] then
+        AreoVolt.Labels[name].Text = newText
+    end
+end
+
+-- Function to Update Button Text
+function AreoVolt.UpdateButtonText(name, newText)
+    if AreoVolt.Buttons[name] then
+        AreoVolt.Buttons[name].Text = newText
+    end
 end
 
 return AreoVolt
