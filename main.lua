@@ -1,22 +1,17 @@
 local AreoVolt = {}
+AreoVolt.Buttons = {}
+AreoVolt.Labels = {}
 
--- Auto-Cleanup Function
 function AreoVolt.DestroyExisting()
-    local existing = game.CoreGui:FindFirstChild("AreoVoltHUB") 
-        or (game:GetService("Players").LocalPlayer 
-        and game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui") 
-        and game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("AreoVoltHUB"))
-
-    if existing then
-        existing:Destroy()
+    local player = game:GetService("Players").LocalPlayer
+    if player and player:FindFirstChild("PlayerGui") then
+        local existingGUI = player.PlayerGui:FindFirstChild("AreoVoltHUB")
+        if existingGUI then
+            existingGUI:Destroy()
+        end
     end
 end
 
--- Stores Created Labels for Dynamic Updates
-AreoVolt.Labels = {}
-AreoVolt.Buttons = {}
-
--- Function to Create Main Window
 function AreoVolt.CreateWindow(settings)
     AreoVolt.DestroyExisting()
 
@@ -28,8 +23,8 @@ function AreoVolt.CreateWindow(settings)
     local topbar = Instance.new("Frame")
     local close = Instance.new("TextButton")
     local titleLabel = Instance.new("TextLabel")
-    local container = Instance.new("Frame") 
-    local layout = Instance.new("UIListLayout") 
+    local container = Instance.new("ScrollingFrame") -- SCROLLING FRAME ADDED
+    local layout = Instance.new("UIListLayout")
 
     -- Set Parent Correctly
     local player = game:GetService("Players").LocalPlayer
@@ -37,7 +32,7 @@ function AreoVolt.CreateWindow(settings)
     AreoVoltHUB.Name = "AreoVoltHUB"
     AreoVoltHUB.Parent = player:WaitForChild("PlayerGui")
 
-    -- GUI Properties
+    -- GUI Settings
     AreoVoltHUB.ResetOnSpawn = false
     AreoVoltHUB.IgnoreGuiInset = true
 
@@ -45,7 +40,7 @@ function AreoVolt.CreateWindow(settings)
     MainWindow.Parent = AreoVoltHUB
     MainWindow.BackgroundColor3 = Color3.new(0, 0, 0)
     MainWindow.BorderSizePixel = 0
-    MainWindow.Position = UDim2.new(0.314843744, 0, 0.172297299, 0)
+    MainWindow.Position = UDim2.new(0.314, 0, 0.172, 0)
     MainWindow.Size = UDim2.new(0, 369, 0, 388)
 
     UICorner.Parent = MainWindow
@@ -83,24 +78,33 @@ function AreoVolt.CreateWindow(settings)
         AreoVoltHUB:Destroy()
     end)
 
-    -- Container for UI Elements
+    -- SCROLLING FRAME for UI Elements
     container.Parent = MainWindow
-    container.Size = UDim2.new(1, 0, 1, -30)
-    container.Position = UDim2.new(0, 0, 0, 30)
+    container.Size = UDim2.new(1, 0, 1, -25) -- Adjusted to fit everything below the topbar
+    container.Position = UDim2.new(0, 0, 0, 25) -- Moves down below the topbar
     container.BackgroundTransparency = 1
+    container.ClipsDescendants = true
+    container.ScrollBarThickness = 5
+    container.CanvasSize = UDim2.new(0, 0, 0, 0) -- Starts at 0, will auto-grow
 
     layout.Parent = container
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Padding = UDim.new(0, 5)
 
-    return MainWindow, container
+    -- Auto-adjust scrolling size when elements are added
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        container.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+    end)
+
+    AreoVolt.Container = container -- Store container reference
+    return MainWindow
 end
 
--- Function to Create Buttons
-function AreoVolt.CreateButton(parent, settings)
+-- Auto-Parent to Container (No Need to Specify Parent Anymore!)
+function AreoVolt.CreateButton(settings)
     local button = Instance.new("TextButton")
     button.Name = settings.Name or "Button"
-    button.Parent = parent
+    button.Parent = AreoVolt.Container -- Automatically goes inside the container
     button.Size = UDim2.new(0.9, 0, 0, 40)
     button.Position = UDim2.new(0.05, 0, 0, 0)
     button.Text = settings.Text or "Button"
@@ -118,11 +122,10 @@ function AreoVolt.CreateButton(parent, settings)
     return button
 end
 
--- Function to Create Labels
-function AreoVolt.CreateLabel(parent, settings)
+function AreoVolt.CreateLabel(settings)
     local label = Instance.new("TextLabel")
     label.Name = settings.Name or "Label"
-    label.Parent = parent
+    label.Parent = AreoVolt.Container -- Automatically goes inside the container
     label.Size = UDim2.new(0.9, 0, 0, 30)
     label.Position = UDim2.new(0.05, 0, 0, 0)
     label.Text = settings.Text or "Label"
@@ -134,19 +137,3 @@ function AreoVolt.CreateLabel(parent, settings)
     AreoVolt.Labels[label.Name] = label
     return label
 end
-
--- Function to Update Label Text
-function AreoVolt.UpdateTextLabel(name, newText)
-    if AreoVolt.Labels[name] then
-        AreoVolt.Labels[name].Text = newText
-    end
-end
-
--- Function to Update Button Text
-function AreoVolt.UpdateButtonText(name, newText)
-    if AreoVolt.Buttons[name] then
-        AreoVolt.Buttons[name].Text = newText
-    end
-end
-
-return AreoVolt
