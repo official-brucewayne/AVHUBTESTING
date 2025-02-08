@@ -137,3 +137,5 @@ function AreoVolt.CreateLabel(settings)
     AreoVolt.Labels[label.Name] = label
     return label
 end
+
+return AreoVolt
