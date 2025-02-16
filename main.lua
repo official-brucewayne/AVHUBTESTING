@@ -189,4 +189,17 @@ function AreoVolt.CreateLabel(settings)
 	return label
 end
 
+function AreoVolt.UpdateTextLabel(name, newText)
+    if AreoVolt.Labels[name] then
+        AreoVolt.Labels[name].Text = newText
+    end
+end
+
+-- Function to Update Button Text
+function AreoVolt.UpdateButtonText(name, newText)
+    if AreoVolt.Buttons[name] then
+        AreoVolt.Buttons[name].Text = newText
+    end
+end
+
 return AreoVolt
